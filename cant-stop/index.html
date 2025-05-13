@@ -17,7 +17,6 @@
             --player2-color: #F00; /* Red */
             --player3-color: #00F; /* Blue */
             --player4-color: #FFF; /* White */
-            --temp-marker-suffix: "temp";
         }
 
         body {
@@ -155,13 +154,21 @@
         #dice-area {
             margin-bottom: 15px;
             font-size: 1.5em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dice-label {
+            font-size: 0.8em; /* Smaller label */
+            margin-bottom: 5px;
         }
         .dice {
-            display: inline-block;
             border: 1px solid var(--text-color);
             padding: 5px 8px;
-            margin: 0 3px;
-            min-width: 20px;
+            margin: 2px 0; /* Vertical margin */
+            min-width: 25px;
+            width: 30px; /* Fixed width for alignment */
+            text-align: center;
         }
 
         #pair-choices button {
@@ -192,7 +199,7 @@
             .space { width: 15px; height: 13px; font-size: 0.6em; }
             button { padding: 6px 8px; min-width: 80px; margin: 3px;}
             #dice-area { font-size: 1.2em; }
-            .dice { padding: 3px 5px; }
+            .dice { padding: 3px 5px; width: 25px; }
         }
     </style>
 </head>
@@ -228,7 +235,11 @@
         <div id="player-info">Player X's Turn</div>
         <div id="board-container"></div>
         <div id="dice-area">
-            Dice: <span class="dice">?</span> <span class="dice">?</span> <span class="dice">?</span> <span class="dice">?</span>
+            <div class="dice-label">Dice:</div>
+            <span class="dice">?</span>
+            <span class="dice">?</span>
+            <span class="dice">?</span>
+            <span class="dice">?</span>
         </div>
         <div id="actions-area">
             <button id="roll-dice-btn" onclick="handleRollDice()">Roll Dice</button>
@@ -252,19 +263,17 @@
         };
         const PLAYER_SYMBOLS = ['P1', 'P2', 'P3', 'P4'];
         const PLAYER_CLASSES = ['player0', 'player1', 'player2', 'player3'];
-        const TEMP_MARKER_SUFFIX = 't'; // Shorter for display
+        const TEMP_MARKER_SUFFIX = 't';
 
         let numPlayers;
         let currentPlayerIndex;
-        let playersData; // [{ symbol, class, progress: {colNum: pos}, claimedColumns: [] }]
-        let boardState; // { colNum: { claimedBy: null, spaces: [] (for rendering markers) }}
+        let playersData; 
+        let boardState; 
         
-        // Turn-specific state
         let currentDice = [0,0,0,0];
-        let currentRunners = []; // Array of column numbers with active temporary markers
-        let tempRunnerPositions = {}; // { colNum: position } for current turn
+        let currentRunners = []; 
+        let tempRunnerPositions = {}; 
 
-        // DOM Elements
         const menuScreen = document.getElementById('menu-screen');
         const rulesScreen = document.getElementById('rules-screen');
         const gameScreen = document.getElementById('game-screen');
@@ -280,7 +289,7 @@
 
         function showScreen(screenToShow) {
             [menuScreen, rulesScreen, gameScreen, gameOverScreen].forEach(s => s.style.display = 'none');
-            screenToShow.style.display = 'flex'; // Using flex for centering
+            screenToShow.style.display = 'flex';
         }
         function showMenu() { showScreen(menuScreen); }
         function showRules() { showScreen(rulesScreen); }
@@ -289,7 +298,8 @@
         function initBoard() {
             boardState = {};
             boardContainer.innerHTML = '';
-            for (const colNum in COLUMN_DEFINITIONS) {
+            for (const colNumStr in COLUMN_DEFINITIONS) {
+                const colNum = parseInt(colNumStr);
                 boardState[colNum] = {
                     claimedBy: null,
                     spaces: Array(COLUMN_DEFINITIONS[colNum].len).fill('')
@@ -318,24 +328,22 @@
         }
 
         function renderBoard() {
-            // Clear previous markers
             document.querySelectorAll('.space').forEach(s => {
                 s.textContent = '';
-                s.className = 'space'; // Reset classes, keep 'top-space' if applicable
-                 // Re-add top-space if it was there (find column num and check length)
+                let baseClass = 'space';
                 const parts = s.id.split('-');
                 const colNum = parseInt(parts[1]);
                 const spaceIndex = parseInt(parts[2]);
                 if (spaceIndex === COLUMN_DEFINITIONS[colNum].len - 1) {
-                    s.classList.add('top-space');
+                    baseClass += ' top-space';
                 }
+                s.className = baseClass;
             });
 
-            // Draw permanent markers
             playersData.forEach((player, pIdx) => {
                 for (const colNum in player.progress) {
                     const pos = player.progress[colNum];
-                    if (pos > 0) { // Position 0 is off-board
+                    if (pos > 0) {
                         const spaceId = `space-${colNum}-${pos-1}`;
                         const spaceDiv = document.getElementById(spaceId);
                         if (spaceDiv) {
@@ -346,11 +354,10 @@
                 }
             });
 
-            // Draw temporary markers
-            for (const colNum in tempRunnerPositions) {
-                const pos = tempRunnerPositions[colNum];
+            for (const colNumStr in tempRunnerPositions) {
+                const pos = tempRunnerPositions[colNumStr];
                 if (pos > 0) {
-                    const spaceId = `space-${colNum}-${pos-1}`;
+                    const spaceId = `space-${colNumStr}-${pos-1}`;
                     const spaceDiv = document.getElementById(spaceId);
                     if (spaceDiv) {
                         spaceDiv.textContent = playersData[currentPlayerIndex].symbol + TEMP_MARKER_SUFFIX;
@@ -368,7 +375,7 @@
                 playersData.push({
                     symbol: PLAYER_SYMBOLS[i],
                     class: PLAYER_CLASSES[i],
-                    progress: {}, // { colNum: position }
+                    progress: {}, 
                     claimedColumns: []
                 });
             }
@@ -380,7 +387,7 @@
 
         function startTurn() {
             playerInfoDiv.textContent = `${playersData[currentPlayerIndex].symbol}'s Turn`;
-            playerInfoDiv.className = playersData[currentPlayerIndex].class; // Color the text
+            playerInfoDiv.className = playersData[currentPlayerIndex].class;
             currentRunners = [];
             tempRunnerPositions = {};
             currentDice = [0,0,0,0];
@@ -388,13 +395,11 @@
             rollDiceBtn.disabled = false;
             stopTurnBtn.disabled = true;
             pairChoicesDiv.innerHTML = '';
-            messageArea.textContent = '';
-            renderBoard(); // Render to clear previous temp markers
+            messageArea.textContent = 'Roll the dice!';
+            renderBoard();
         }
 
-        function rollDie() {
-            return Math.floor(Math.random() * 6) + 1;
-        }
+        function rollDie() { return Math.floor(Math.random() * 6) + 1; }
 
         function updateDiceDisplay() {
             const diceSpans = diceArea.querySelectorAll('.dice');
@@ -404,20 +409,15 @@
         }
         
         function getPossiblePairs(dice) {
-            const d = [...dice]; // Clone
-            const pairs = new Set(); // Use Set to store unique stringified pairs
-
-            // (d1+d2, d3+d4)
+            const d = [...dice];
+            const pairs = new Set();
             pairs.add(JSON.stringify([d[0]+d[1], d[2]+d[3]].sort((a,b)=>a-b)));
-            // (d1+d3, d2+d4)
             pairs.add(JSON.stringify([d[0]+d[2], d[1]+d[3]].sort((a,b)=>a-b)));
-            // (d1+d4, d2+d3)
             pairs.add(JSON.stringify([d[0]+d[3], d[1]+d[2]].sort((a,b)=>a-b)));
             
             const result = [];
             pairs.forEach(pStr => {
                 const pair = JSON.parse(pStr);
-                // Filter out pairs that would involve sums outside 2-12
                 if (pair.every(sum => sum >=2 && sum <= 12)) {
                     result.push(pair);
                 }
@@ -425,172 +425,187 @@
             return result;
         }
 
+        function isColumnPlayable(colNum) {
+            const colNumStr = colNum.toString();
+            if (!COLUMN_DEFINITIONS[colNumStr]) return false;
+            return boardState[colNumStr].claimedBy === null || boardState[colNumStr].claimedBy === currentPlayerIndex;
+        }
+
         function handleRollDice() {
             currentDice = [rollDie(), rollDie(), rollDie(), rollDie()];
             updateDiceDisplay();
             rollDiceBtn.disabled = true;
+            stopTurnBtn.disabled = true; // Disabled until a choice is made or confirmed possible
             
-            let possibleAdvancements = getPossiblePairs(currentDice);
+            let possibleDicePairs = getPossiblePairs(currentDice);
             
-            // Filter advancements: must be able to advance at least one current runner OR start a new one if < 3 runners
-            if (currentRunners.length > 0) {
-                possibleAdvancements = possibleAdvancements.filter(pair => 
-                    pair.some(sum => currentRunners.includes(sum.toString()))
-                );
-            }
-
-            if (possibleAdvancements.length === 0) {
-                messageArea.textContent = "BUST! No valid moves.";
-                // No need to disable stop, as turn ends automatically
-                setTimeout(nextTurnAfterBust, 1500);
+            if (possibleDicePairs.length === 0) { 
+                messageArea.textContent = "BUST! Dice roll produced no valid sums (e.g. <2 or >12).";
+                pairChoicesDiv.innerHTML = '<button id="bust-next-turn-btn" onclick="nextTurnAfterBust()">Acknowledge Bust & Next Turn</button>';
                 return;
             }
             
-            displayPairChoices(possibleAdvancements);
-            stopTurnBtn.disabled = false; // Can always stop after a roll if not busted
+            displayPairChoices(possibleDicePairs);
+            
+            // If choices are available AND runners are already on board from this turn, player can choose to stop.
+            if (pairChoicesDiv.children.length > 0 && currentRunners.length > 0) {
+                stopTurnBtn.disabled = false;
+            }
         }
 
         function displayPairChoices(advancements) {
             pairChoicesDiv.innerHTML = '';
+            let atLeastOneButtonGenerated = false;
+            messageArea.textContent = "Choose a dice pair to advance:";
+
             advancements.forEach(pair => {
-                const btn = document.createElement('button');
-                const sum1 = pair[0];
-                const sum2 = pair[1];
+                const s1 = pair[0];
+                const s2 = pair[1];
 
-                let btnText = `${sum1} & ${sum2}`;
-                if (sum1 === sum2) btnText = `${sum1} (double)`;
-
-                btn.textContent = `Use ${btnText}`;
-                btn.onclick = () => selectPairToAdvance(sum1, sum2);
-
-                // Check if this choice is valid for current runners
-                let canAdvanceSum1 = false;
-                let canAdvanceSum2 = false;
-
-                // Column not claimed by someone else
-                const col1Free = !boardState[sum1] || boardState[sum1].claimedBy === null || boardState[sum1].claimedBy === currentPlayerIndex;
-                const col2Free = !boardState[sum2] || boardState[sum2].claimedBy === null || boardState[sum2].claimedBy === currentPlayerIndex;
-
-
-                if (col1Free) {
-                    if (currentRunners.includes(sum1.toString())) canAdvanceSum1 = true;
-                    else if (currentRunners.length < 3) canAdvanceSum1 = true;
-                    else if (sum1 === sum2 && currentRunners.length < 2 && !currentRunners.includes(sum1.toString())) canAdvanceSum1 = true; // Special case for doubles opening 2 runners
+                let s1_can_action = false; // Can s1 be advanced or started?
+                let s1_starts_new_runner = false;
+                if (isColumnPlayable(s1) && (!tempRunnerPositions[s1] || tempRunnerPositions[s1] < COLUMN_DEFINITIONS[s1].len)) {
+                    if (currentRunners.includes(s1.toString())) {
+                        s1_can_action = true;
+                    } else if (currentRunners.length < 3) {
+                        s1_can_action = true;
+                        s1_starts_new_runner = true;
+                    }
                 }
 
-                if (col2Free) {
-                    if (currentRunners.includes(sum2.toString())) canAdvanceSum2 = true;
-                    // If sum1 took the last runner slot, sum2 can't open a new one unless it's the same as sum1
-                    else if (sum1 === sum2 && currentRunners.includes(sum1.toString())) canAdvanceSum2 = true; // Advancing same column twice
-                    else if (currentRunners.length < 3) canAdvanceSum2 = true;
-                    else if (currentRunners.length === 2 && !currentRunners.includes(sum2.toString()) && !canAdvanceSum1) canAdvanceSum2 = true; // if sum1 is not new
-                    else if (sum1 !== sum2 && currentRunners.length < (canAdvanceSum1 && !currentRunners.includes(sum1.toString()) ? 2 : 3)) canAdvanceSum2 = true;
+                let s2_can_action = false; // Can s2 be advanced or started?
+                let s2_starts_new_runner = false;
+                let runnersActiveIfS1UsedNewSlot = currentRunners.length + (s1_starts_new_runner ? 1 : 0);
+                
+                if (isColumnPlayable(s2) && (!tempRunnerPositions[s2] || tempRunnerPositions[s2] < COLUMN_DEFINITIONS[s2].len)) {
+                    if (currentRunners.includes(s2.toString())) {
+                        s2_can_action = true;
+                    } else if (s1 === s2 && s1_can_action) { // s2 is advancing the same runner s1 moved/placed
+                        s2_can_action = true; // Not starting a "new" runner, but actioning the one for s1
+                    } else if (s1 !== s2 && runnersActiveIfS1UsedNewSlot < 3) { // s2 is a new, distinct runner
+                        s2_can_action = true;
+                        s2_starts_new_runner = true;
+                    }
+                    // Case: s1 === s2, s1 could not action (e.g. s1_starts_new_runner=false because 3 runners already out).
+                    // Then s2, as a new runner (because s1 wasn't new), can start if runnersActiveIfS1UsedNewSlot < 3.
+                    // This situation is simpler: currentRunners.length < 3 is the primary check for starting new.
+                    else if (s1 === s2 && !s1_starts_new_runner && currentRunners.length < 3 && !currentRunners.includes(s1.toString())) {
+                         // if s1 couldn't start a new runner (e.g. it was advancing existing),
+                         // but s2 (same column) is now considered to start fresh.
+                         // This is more like: can s1 OR s2 start a new runner on this column if it's not active.
+                         // The current logic for s1_starts_new_runner should handle this for column s1.
+                         // If s1=s2, and s1 is not an existing runner, s1_starts_new_runner applies to both.
+                    }
+                }
+
+
+                let showButtonForThisPair = false;
+                if (s1_can_action || s2_can_action) {
+                    if (currentRunners.length > 0) { // Must advance an existing runner
+                        if ((s1_can_action && currentRunners.includes(s1.toString())) ||
+                            (s2_can_action && currentRunners.includes(s2.toString()))) {
+                            showButtonForThisPair = true;
+                        }
+                    } else { // No runners out, any valid start is fine
+                        showButtonForThisPair = true;
+                    }
                 }
                 
-                // At least one of the sums must be advancable for the pair button to be active.
-                // And each sum must be valid to advance (not at top, not claimed by other)
-                const sum1AtTop = tempRunnerPositions[sum1] === COLUMN_DEFINITIONS[sum1]?.len;
-                const sum2AtTop = tempRunnerPositions[sum2] === COLUMN_DEFINITIONS[sum2]?.len;
-
-                if (sum1AtTop) canAdvanceSum1 = false;
-                if (sum2AtTop) canAdvanceSum2 = false;
-
-                if (canAdvanceSum1 || canAdvanceSum2) {
+                if (showButtonForThisPair) {
+                    const btn = document.createElement('button');
+                    let btnText = `${s1} & ${s2}`;
+                    if (s1 === s2) btnText = `${s1} (double)`;
+                    btn.textContent = `Use ${btnText}`;
+                    btn.onclick = () => selectPairToAdvance(s1, s2);
                     pairChoicesDiv.appendChild(btn);
+                    atLeastOneButtonGenerated = true;
                 }
             });
-            if (pairChoicesDiv.children.length === 0 && currentRunners.length > 0) {
-                 messageArea.textContent = "BUST! No valid moves with current runners.";
-                 setTimeout(nextTurnAfterBust, 1500);
-            } else if (pairChoicesDiv.children.length === 0 && currentRunners.length === 0) {
-                messageArea.textContent = "No valid columns to start on (all taken/too short). BUST!";
-                setTimeout(nextTurnAfterBust, 1500);
+
+            if (!atLeastOneButtonGenerated) {
+                messageArea.textContent = (currentRunners.length > 0) ?
+                    "BUST! No dice pair can advance your current runners." :
+                    "BUST! No dice pair can start or advance a valid runner.";
+                rollDiceBtn.disabled = true;
+                stopTurnBtn.disabled = true;
+                pairChoicesDiv.innerHTML = '<button id="bust-next-turn-btn" onclick="nextTurnAfterBust()">Acknowledge Bust & Next Turn</button>';
+            } else {
+                // If buttons are generated, player can stop if they already have runners from this turn
+                if (currentRunners.length > 0) stopTurnBtn.disabled = false;
             }
         }
 
         function selectPairToAdvance(sum1, sum2) {
-            pairChoicesDiv.innerHTML = ''; // Clear choices
-            let advancedSomething = false;
+            pairChoicesDiv.innerHTML = ''; 
+            let advancedAtLeastOneRunnerThisSelection = false;
 
-            const advanceSum = (sum) => {
-                if (boardState[sum].claimedBy !== null && boardState[sum].claimedBy !== currentPlayerIndex) {
-                    return false; // Column claimed by another
-                }
-                if (tempRunnerPositions[sum] === COLUMN_DEFINITIONS[sum].len) {
-                    return false; // Already at top
-                }
+            const tryAdvanceOrPlace = (sum) => {
+                if (!isColumnPlayable(sum)) return false;
+                const sumStr = sum.toString();
+                if (tempRunnerPositions[sumStr] && tempRunnerPositions[sumStr] >= COLUMN_DEFINITIONS[sumStr].len) return false;
 
-                if (currentRunners.includes(sum.toString())) {
-                    tempRunnerPositions[sum]++;
-                    advancedSomething = true;
+                if (currentRunners.includes(sumStr)) {
+                    tempRunnerPositions[sumStr]++;
+                    advancedAtLeastOneRunnerThisSelection = true;
                     return true;
                 } else if (currentRunners.length < 3) {
-                    currentRunners.push(sum.toString());
-                    // Start runner: if player has permanent marker, start from there, else from 0
-                    tempRunnerPositions[sum] = (playersData[currentPlayerIndex].progress[sum] || 0) + 1;
-                    advancedSomething = true;
+                    currentRunners.push(sumStr);
+                    tempRunnerPositions[sumStr] = (playersData[currentPlayerIndex].progress[sumStr] || 0) + 1;
+                    advancedAtLeastOneRunnerThisSelection = true;
                     return true;
                 }
-                return false; // Cannot advance this sum (no free runner slot)
+                return false;
             };
 
-            // Try to advance sum1
-            const advanced1 = advanceSum(sum1);
-            
-            // Try to advance sum2 (only if different from sum1, or if sum1 was advanced and it's a double)
-            // Or if sum1 couldn't be advanced but sum2 can use a new runner slot
-            if (sum1 === sum2) { // If it's a double, and first advance was successful
-                if (advanced1) advanceSum(sum2); // Attempt second advance on same column
-            } else { // Different sums
-                advanceSum(sum2);
+            const didAdvanceSum1 = tryAdvanceOrPlace(sum1);
+            if (sum1 === sum2) {
+                if (didAdvanceSum1) tryAdvanceOrPlace(sum2); 
+            } else {
+                tryAdvanceOrPlace(sum2);
             }
 
-
-            if (!advancedSomething && currentRunners.length > 0) {
-                // This case should ideally be caught by displayPairChoices disabling buttons
-                // But as a fallback, if a choice was made that results in no advancement with existing runners
-                messageArea.textContent = "Error: Choice didn't advance. Busting.";
-                setTimeout(nextTurnAfterBust, 1500);
-                return;
+            if (!advancedAtLeastOneRunnerThisSelection) {
+                messageArea.textContent = "Error: Selected pair resulted in no actual advancement. BUST!";
+                rollDiceBtn.disabled = true;
+                stopTurnBtn.disabled = true;
+                pairChoicesDiv.innerHTML = '<button id="bust-next-turn-btn" onclick="nextTurnAfterBust()">Acknowledge Bust & Next Turn</button>';
+                return; 
             }
             
             renderBoard();
-            rollDiceBtn.disabled = false; // Can roll again
-            stopTurnBtn.disabled = false;
+            rollDiceBtn.disabled = false; 
+            stopTurnBtn.disabled = false; // Now that a move is made, can always stop.
+            messageArea.textContent = "Roll again or Stop.";
         }
 
         function handleStopTurn() {
-            // Make temporary markers permanent
             for (const colNumStr in tempRunnerPositions) {
                 const colNum = parseInt(colNumStr);
-                const pos = tempRunnerPositions[colNum];
-                playersData[currentPlayerIndex].progress[colNum] = pos;
+                const pos = tempRunnerPositions[colNumStr];
+                playersData[currentPlayerIndex].progress[colNumStr] = pos;
 
-                // Check for claimed column
-                if (pos === COLUMN_DEFINITIONS[colNum].len && !boardState[colNum].claimedBy) {
-                    boardState[colNum].claimedBy = currentPlayerIndex;
-                    playersData[currentPlayerIndex].claimedColumns.push(colNum);
-                    messageArea.textContent = `${playersData[currentPlayerIndex].symbol} claimed column ${colNum}!`;
+                if (pos === COLUMN_DEFINITIONS[colNumStr].len && (boardState[colNumStr].claimedBy === null || boardState[colNumStr].claimedBy === currentPlayerIndex )) {
+                     if(boardState[colNumStr].claimedBy === null) { // Only add to claimed if not already claimed by self
+                        boardState[colNumStr].claimedBy = currentPlayerIndex;
+                        playersData[currentPlayerIndex].claimedColumns.push(colNum);
+                        messageArea.textContent = `${playersData[currentPlayerIndex].symbol} claimed column ${colNum}!`;
+                     }
                 }
             }
             
-            renderBoard(); // Show permanent markers
+            renderBoard(); 
 
-            // Check for win
             if (playersData[currentPlayerIndex].claimedColumns.length >= 3) {
                 gameOver();
                 return;
             }
-
             nextTurn();
         }
         
         function nextTurnAfterBust() {
-            // Busted: temp progress is lost.
-            tempRunnerPositions = {}; // Reset temp positions
-            currentRunners = [];      // Reset runners
-            // Don't save progress to playersData
-            renderBoard(); // Clear temp markers from board
+            tempRunnerPositions = {}; 
+            currentRunners = [];      
+            renderBoard(); 
             nextTurn();
         }
 
@@ -604,9 +619,7 @@
             showScreen(gameOverScreen);
         }
 
-        // Initial call
         showMenu();
-
     </script>
 </body>
 </html>
