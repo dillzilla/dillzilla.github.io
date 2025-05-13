@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Typer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="crt-overlay"></div>
+    <div class="container">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1 class="title flicker">The Typer</h1>
+            <p class="subtitle">Maintain control. Type faster.</p>
+            <div class="button-group">
+                <button id="start-button" class="btn">Start New Game</button>
+                <button id="rules-button" class="btn">How To Play</button>
+            </div>
+        </div>
+
+        <!-- Rules Screen -->
+        <div id="rules-screen" class="screen">
+            <h2 class="flicker">How To Play</h2>
+            <p>You must prove your worth by out-typing the machine.</p>
+            <p>Complete 3 sentences faster than the system's progress bar to advance to the next level.</p>
+            <p>Each level increases sentence complexity and the required typing speed (WPM).</p>
+            <p>If the system's progress bar reaches the end before you finish typing a sentence, you lose control.</p>
+            <p>Accuracy counts, but speed is paramount.</p>
+            <p>Good luck, operator.</p>
+            <button id="close-rules-button" class="btn">Back</button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen">
+            <h2 class="flicker">System Accessing...</h2>
+            <p id="loading-text">Generating linguistic challenge matrix...</p>
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="game-info">
+                <span>Level: <span id="level-display">1</span></span>
+                <span>Sentence: <span id="sentence-num-display">1</span>/3</span>
+                <span>Target WPM: <span id="target-wpm-display">0</span></span>
+                <span>Current WPM: <span id="current-wpm-display">0</span></span>
+            </div>
+
+            <div id="sentence-prompt">
+                <p>Prepare to type. Press "Start Task" when ready.</p>
+            </div>
+            <button id="start-sentence-button" class="btn">Start Task</button>
+
+            <div id="sentence-display-wrapper" style="display: none;">
+                <p>Sentence:</p>
+                <div id="sentence-display"></div>
+            </div>
+
+            <textarea id="typing-input" rows="5" placeholder="Start typing here..." disabled></textarea>
+
+            <div id="progress-bars">
+                <div class="progress-container">
+                    <label for="user-progress">Your Progress:</label>
+                    <div class="progress-bar-outer">
+                        <div id="user-progress-bar" class="progress-bar user"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <label for="computer-progress">System Progress:</label>
+                    <div class="progress-bar-outer">
+                        <div id="computer-progress-bar" class="progress-bar computer"></div>
+                    </div>
+                </div>
+            </div>
+            <button id="end-game-button" class="btn btn-danger">Abort Session (End Game)</button>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h2 id="end-title" class="flicker">Session Terminated</h2>
+            <p id="end-message">Reason: Manual Abort</p>
+            <p>Highest Level Reached: <span id="final-level">0</span></p>
+            <p>Peak WPM: <span id="final-wpm">0</span></p>
+            <button id="restart-button" class="btn">Restart Simulation</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

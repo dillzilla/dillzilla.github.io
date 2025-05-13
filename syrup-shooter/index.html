@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Syrup Shooter</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('assets/images/waffle_land.webp');
+            background-size: cover;
+            background-position: center center;
+        }
+        }
+        /* Basic selection prevention */
+        .no-select {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+        /* Style for active dragging - applies grab cursor and prevents selection */
+         body.dragging, body.dragging * {
+             cursor: grabbing !important;
+             -webkit-user-select: none !important;
+             -moz-user-select: none !important;
+             -ms-user-select: none !important;
+             user-select: none !important;
+         }
+         /* Prevent dragging ghost image */
+         body.dragging img {
+            -webkit-user-drag: none;
+            user-drag: none;
+         }
+    </style>
+</head>
+<body>
+    <div id="outer-container">
+        <div id="ui-elements">
+            <div id="score-display">Score: <span id="score">0</span></div>
+            <div id="ammo-display">Ammo: <span id="ammo">10</span>/<span id="max-ammo">10</span></div>
+            <div id="timer-display">Time: <span id="timer">60</span></div>
+        </div>
+
+        <div id="game-container">
+            <div id="start-screen" class="screen active">
+                <h1>Syrup Shooter</h1>
+                <p>Shoot the bouncing waffles before time runs out!</p>
+                <button id="start-button">Start Game</button>
+            </div>
+
+            <div id="game-over-screen" class="screen">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <button id="play-again-button">Start New Game</button>
+            </div>
+
+            <canvas id="game-canvas"></canvas>
+
+            <img id="chef" src="assets/images/chef.png" alt="Chef" onerror="this.style.display='none'; console.error('Failed to load chef.png')">
+            <img id="crosshair" src="assets/images/crosshair.png" alt="Crosshair" onerror="this.style.display='none'; console.error('Failed to load crosshair.png')">
+
+            </div> <div id="reload-container">
+            <div id="reload-track">
+                 <div id="reload-handle"></div>
+            </div>
+            <div id="reload-text">RELOAD!</div>
+        </div>
+
+        <button id="end-game-button">End Game</button>
+
+    </div> <audio id="background-music" loop preload="auto"> <source src="assets/audio/background_music.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+    <audio id="intro-music" loop preload="auto"> <source src="assets/audio/intro_music.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+    <audio id="game-over-music" preload="auto"> <source src="assets/audio/game_over_music.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+    <audio id="shoot-sound" preload="auto"> <source src="assets/audio/shoot_sound.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+    <audio id="hit-sound" preload="auto"> <source src="assets/audio/hit_sound.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+    <audio id="reload-complete-sound" preload="auto"> <source src="assets/audio/reload_complete_sound.mp3" type="audio/mpeg"> Your browser does not support the audio element. </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

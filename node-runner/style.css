@@ -1,0 +1,304 @@
+/* Basic Reset & Font */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'VT323', monospace;
+    background-color: #0a0a0a; /* Dark background */
+    color: #00ff00; /* Bright green text */
+    font-size: 1.5rem; /* Increase base font size */
+    line-height: 1.6;
+    text-shadow: 0 0 3px #00ff00a0; /* Subtle glow */
+    height: 100%;
+    display: flex; /* Use flexbox for centering */
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+#game-container, #rules-screen {
+    width: 90%;
+    max-width: 850px;
+    height: 90vh; /* Use viewport height */
+    padding: 25px;
+    border: 2px solid #00ff00; /* Terminal border */
+    border-radius: 10px; /* Slight CRT curve */
+    box-shadow: 0 0 15px #00ff0050, inset 0 0 10px #000000a0; /* Outer glow and inner shadow */
+    display: flex; /* Use flex for internal layout */
+    flex-direction: column;
+    position: relative; /* Needed for CRT overlay */
+    overflow: hidden; /* Hide overflowing effects */
+    animation: text-flicker 10s linear infinite alternate; /* Slightly faster flicker */
+}
+#game-container.hidden { /* Allow hiding the game container */
+    display: none;
+}
+
+
+/* CRT Scanline and Vignette Effect */
+.crt-overlay {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.03), rgba(0, 0, 255, 0.04));
+    background-size: 100% 3px, 4px 100%; /* Slightly tighter scanlines */
+    z-index: 2; /* Above content, below loading/rules */
+    pointer-events: none; /* Allow interaction with content below */
+    animation: scanline-move 8s linear infinite; /* Faster scanline */
+    border-radius: इन्हेरिट; /* Match container curve */
+}
+.crt-overlay::after {
+     content: "";
+     position: absolute;
+     top: 0; left: 0; right: 0; bottom: 0;
+     border-radius: inherit;
+     box-shadow: inset 0 0 60px 20px rgba(0,0,0,0.4);
+     pointer-events: none;
+     z-index: 3;
+}
+
+
+@keyframes scanline-move {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100vh; }
+}
+
+@keyframes text-flicker {
+    0%, 100% { text-shadow: 0 0 3px #00ff00a0; opacity: 1;}
+    49% { text-shadow: 0 0 3px #00ff00a0; opacity: 1;}
+    50% { text-shadow: 0 0 5px #00ff00, 0 0 1px red; opacity: 0.95; }
+    51% { text-shadow: 0 0 3px #00ff00a0; opacity: 1;}
+}
+
+
+/* Header Styles */
+#header {
+    border-bottom: 1px dashed #00ff00;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+#header span { margin-right: 10px; white-space: nowrap; }
+
+/* Main Display Styles */
+#main-display {
+    flex-grow: 1;
+    margin-bottom: 20px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+#main-display::-webkit-scrollbar { width: 5px; }
+#main-display::-webkit-scrollbar-track { background: #0a0a0a; }
+#main-display::-webkit-scrollbar-thumb { background: #005000; }
+
+#node-description { white-space: pre-wrap; }
+.message-area { margin-top: 1em; white-space: pre-wrap; color: #ffff00; text-shadow: 0 0 3px #ffff00a0; min-height: 3em; /* Ensure space for messages */ }
+
+/* Dice Area Styles */
+#dice-area {
+    min-height: 100px; /* More space needed for port alignment UI */
+    margin-bottom: 15px;
+    text-align: center;
+}
+#dice-results { font-size: 2.0rem; letter-spacing: 8px; margin-bottom: 10px; min-height: 1.5em; /* Reserve space */ }
+
+/* Port Alignment UI Styles */
+#port-alignment-ui {
+    border-top: 1px dashed #008000; /* Dimmer green separator */
+    margin-top: 15px;
+    padding-top: 10px;
+}
+#clickable-dice-area, #clickable-ports-area {
+    margin-bottom: 10px;
+    font-size: 1.3rem; /* Slightly smaller for UI elements */
+    min-height: 2em; /* Reserve space */
+}
+#clickable-dice-area span, #clickable-ports-area span {
+    display: inline-block;
+    border: 1px solid #00ff00;
+    padding: 5px 10px;
+    margin: 3px 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    min-width: 50px; /* Ensure consistent width */
+    text-align: center;
+}
+/* Styling for clickable dice/ports */
+#clickable-dice-area span:hover, #clickable-ports-area span:hover:not(.assigned) { /* Don't highlight assigned ports on hover */
+    background-color: #003300;
+}
+/* Styling for selected items */
+#clickable-dice-area span.selected, #clickable-ports-area span.selected-port {
+    background-color: #005500;
+    border-color: #ffff00;
+    color: #ffff00;
+}
+/* Styling for assigned/used items */
+#clickable-dice-area span.assigned { /* Make assigned dice look used */
+    border-color: #008000; /* Dimmer green */
+    color: #008000;
+    cursor: not-allowed;
+    background-color: #050505;
+}
+#clickable-ports-area span.assigned { /* Keep port text visible but indicate assigned */
+    cursor: not-allowed;
+    /* Optional: slightly dimmer text */
+    /* color: #00cc00; */
+}
+
+#clickable-ports-area span.assigned.success { /* Assigned successfully */
+    border-color: #00ff00;
+    color: #00ff00;
+    background-color: #001a00; /* Dark green success background */
+}
+#clickable-ports-area span.assigned.fail { /* Assigned but failed */
+     border-color: #ff0000;
+     color: #ff0000;
+     background-color: #1a0000; /* Dark red fail background */
+}
+
+
+/* Controls Styles */
+#controls {
+    text-align: center;
+    border-top: 1px dashed #00ff00;
+    padding-top: 15px;
+    min-height: 60px;
+}
+
+/* Dice Selection Area - Adjust spacing if needed */
+#dice-selection-area {
+    display: inline-block; /* Keep elements together */
+    margin-bottom: 5px; /* Add space below if controls wrap */
+}
+#dice-selection-area label,
+#dice-selection-area input,
+#dice-selection-area button {
+    margin: 3px 5px; /* Fine-tune spacing */
+}
+
+#controls button, #dice-selection-area label {
+    font-family: 'VT323', monospace;
+    font-size: 1.4rem;
+    background: none;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 8px 15px;
+    /* margin is now inside #dice-selection-area rule for those elements */
+    margin: 5px; /* Default margin for other buttons */
+    cursor: pointer;
+    text-shadow: 0 0 3px #00ff00a0;
+    transition: background-color 0.2s, color 0.2s;
+    vertical-align: middle;
+}
+/* Style for the skip button - maybe different color? */
+#skip-bonus-button {
+    border-color: #ffff00; /* Yellow border */
+    color: #ffff00;
+     text-shadow: 0 0 3px #ffff00a0;
+}
+#skip-bonus-button:hover {
+    background-color: #333300; /* Dark yellow background on hover */
+    color: #ffff00;
+}
+
+#dice-selection-area label { border: none; padding-right: 5px; }
+#controls button:hover, #controls button:focus { background-color: #003300; color: #00ff00; outline: none; }
+#controls button:active { background-color: #005500; }
+#controls button:disabled { /* Style disabled buttons */
+    color: #005000;
+    border-color: #005000 !important; /* Ensure override */
+    cursor: not-allowed;
+    text-shadow: none;
+     background: none; /* Ensure no background hover effect remains */
+}
+
+/* Dice Selection Input */
+#dice-select-input {
+    font-family: 'VT323', monospace;
+    font-size: 1.4rem;
+    width: 60px;
+    padding: 6px;
+    background-color: #050505;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    text-align: center;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+#dice-select-input::-webkit-outer-spin-button, #dice-select-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#dice-select-input[type=number] { -moz-appearance: textfield; }
+#dice-select-input:disabled {
+     background-color: #111;
+     border-color: #005000;
+     color: #005000;
+     cursor: not-allowed;
+}
+
+/* Confirm Alignment Button */
+#confirm-alignment-button {
+    /* Use standard button styles or customize */
+     border-color: #ffff00; /* Yellow border to stand out */
+     color: #ffff00;
+     text-shadow: 0 0 3px #ffff00a0;
+}
+#confirm-alignment-button:hover {
+     background-color: #333300;
+     color: #ffff00;
+}
+#confirm-alignment-button:disabled {
+     border-color: #505000 !important;
+     color: #505000;
+     cursor: not-allowed;
+     text-shadow: none;
+     background: none;
+}
+
+
+/* Rules Screen Styles */
+#rules-screen {
+    position: absolute; /* Overlay */
+    z-index: 50; /* Above game, below loading */
+    background-color: #0a0a0a; /* Match background */
+    color: #00ff00;
+    overflow-y: auto; /* Allow scrolling for rules */
+    padding: 30px;
+}
+#rules-screen h2 { text-align: center; margin-bottom: 20px; text-decoration: underline; }
+#rules-screen pre { white-space: pre-wrap; font-size: 1.2rem; line-height: 1.5; margin-bottom: 25px; }
+#rules-screen button { display: block; margin: 20px auto 0 auto; font-family: 'VT323', monospace; font-size: 1.4rem; background: none; border: 1px solid #00ff00; color: #00ff00; padding: 10px 20px; cursor: pointer; text-shadow: 0 0 3px #00ff00a0; }
+#rules-screen button:hover { background-color: #003300; }
+
+
+/* Utility Class */
+.hidden { display: none !important; }
+
+/* Loading Overlay Styles */
+#loading-overlay { position: fixed; inset: 0; background-color: #0a0a0a; color: #00ff00; display: flex; align-items: center; justify-content: center; z-index: 100; font-size: 2rem; text-shadow: 0 0 5px #00ff00; }
+#loading-overlay.hidden { display: none; }
+.loading-text::after { content: '_'; animation: blink 1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Glitch Effect (Increased Frequency) */
+@keyframes glitch-anim {
+  0% { transform: translate(0); text-shadow: 0 0 3px #00ff00a0; }
+  12% { transform: translate(-2px, 1px) skewX(-4deg); text-shadow: 0 0 1px red, 0 0 3px #00ff00; }
+  24% { transform: translate(1px, -1px) skewX(3deg); text-shadow: 0 0 1px blue, 0 0 3px #00ff00; }
+  36% { transform: translate(0); text-shadow: 0 0 3px #00ff00a0; }
+  100% { transform: translate(0); text-shadow: 0 0 3px #00ff00a0; }
+}
+.glitch-active { animation: glitch-anim 0.2s linear 1; } /* Faster duration */

@@ -1,0 +1,138 @@
+/* Basic Reset & Root Variables */
+:root {
+    --pixel-font: 'Press Start 2P', cursive;
+    --background-color: #222034; /* Dark purple/blue */
+    --text-color: #fdf7f7;       /* Off-white */
+    --accent-color: #44891a;     /* Green accent */
+    --button-bg: #4a4860;       /* Mid-gray/purple */
+    --button-hover-bg: #65637b;
+    --border-color: #140c1c;     /* Very dark border */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--pixel-font);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    font-size: 10px; /* Base size for pixel fonts often looks better small */
+    line-height: 1.6;
+}
+
+.container {
+    background-color: var(--border-color); /* Inner container background */
+    padding: 20px;
+    border: 4px solid var(--text-color);
+    box-shadow: 0 0 0 4px var(--border-color); /* Create double border effect */
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+}
+
+h1 {
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    font-size: 1.8em; /* Adjust size as needed */
+    text-shadow: 2px 2px var(--border-color);
+}
+
+.image-section img {
+    max-width: 80%; /* Adjust as needed */
+    height: auto;
+    border: 3px solid var(--text-color);
+    margin-bottom: 25px;
+    /* Optional: remove image smoothing for sharper pixels */
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.text-section {
+    min-height: 50px; /* Ensure space for text */
+    margin-bottom: 30px;
+    border: 2px dashed var(--button-bg);
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.2); /* Slightly darker background for text area */
+}
+
+#typing-text {
+    font-size: 0.9em; /* Adjust text size */
+    color: var(--text-color);
+    text-align: left; /* Align text left within the box */
+    white-space: pre-wrap; /* Allow text wrapping */
+}
+
+/* Blinking Cursor Effect */
+.cursor {
+    display: inline-block;
+    background-color: var(--text-color);
+    width: 8px; /* Adjust cursor width */
+    height: 12px; /* Adjust cursor height */
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom; /* Align cursor nicely with text */
+}
+
+@keyframes blink {
+    from, to { background-color: transparent; }
+    50% { background-color: var(--text-color); }
+}
+
+.button-section {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    justify-content: center;
+    gap: 15px; /* Space between buttons */
+}
+
+.pixel-button {
+    font-family: var(--pixel-font);
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: 3px solid var(--border-color);
+    padding: 10px 15px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.8em;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease;
+    box-shadow: 3px 3px 0px var(--border-color); /* Pixel shadow effect */
+}
+
+.pixel-button:hover {
+    background-color: var(--button-hover-bg);
+    color: var(--accent-color);
+}
+
+.pixel-button:active {
+    box-shadow: 1px 1px 0px var(--border-color); /* Press effect */
+    transform: translate(2px, 2px); /* Press effect */
+}
+
+/* Simple Responsive Adjustments */
+@media (max-width: 480px) {
+    body {
+        font-size: 8px; /* Slightly smaller base font on small screens */
+    }
+    h1 {
+        font-size: 1.5em;
+    }
+    .pixel-button {
+        padding: 8px 10px;
+        font-size: 0.7em;
+    }
+    .cursor {
+        width: 6px;
+        height: 10px;
+    }
+}

@@ -1,0 +1,337 @@
+/* Basic Reset & DOS Aesthetics */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000;
+    color: #00FF41; /* Classic green terminal */
+    font-family: 'VT323', monospace;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    text-shadow: 0 0 5px #00FF41;
+}
+
+@media (max-width: 1024px) {
+    body {
+        align-items: flex-start;
+        margin-top: 80px;
+    }
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    padding: 20px;
+    border: 2px solid #00FF41;
+    box-shadow: 0 0 15px #00FF41 inset, 0 0 10px #00FF41;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1;
+}
+
+/* Screen Management */
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Titles and Text */
+h1, h2 {
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.title {
+    font-size: 3rem;
+}
+
+.subtitle {
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Buttons */
+.btn {
+    font-family: 'VT323', monospace;
+    background-color: #00FF41;
+    color: #000;
+    border: 1px solid #00FF41;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin: 10px 5px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 5px #00FF41;
+}
+
+.btn:hover, .btn:focus {
+    background-color: #000;
+    color: #00FF41;
+    box-shadow: 0 0 10px #00FF41, 0 0 5px #00FF41 inset;
+    outline: none;
+}
+
+.btn-danger {
+    background-color: #FF0000;
+    color: #000;
+    border-color: #FF0000;
+    box-shadow: 0 0 5px #FF0000;
+}
+.btn-danger:hover, .btn-danger:focus {
+    background-color: #000;
+    color: #FF0000;
+    box-shadow: 0 0 10px #FF0000, 0 0 5px #FF0000 inset;
+}
+
+
+.button-group {
+    margin-top: 20px;
+}
+
+/* Game Screen Elements */
+#game-info {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #00FF41;
+    padding-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+#sentence-prompt {
+    margin: 20px 0;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+#sentence-display-wrapper {
+     width: 100%;
+     margin-bottom: 15px;
+     text-align: left;
+}
+
+#sentence-display {
+    background-color: #111;
+    padding: 15px;
+    border: 1px solid #00FF41;
+    font-size: 1.6rem;
+    line-height: 1.8;
+    margin-top: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#sentence-display span {
+    transition: background-color 0.1s, color 0.1s;
+}
+
+#sentence-display span.correct {
+    color: #7FFF00;
+    background-color: rgba(0, 255, 65, 0.1);
+}
+
+#sentence-display span.incorrect {
+    color: #FF4500; /* Red/Orange for incorrect */
+    background-color: rgba(255, 69, 0, 0.3); /* More distinct error background */
+    text-decoration: underline;
+    text-decoration-color: #FF4500;
+    text-decoration-thickness: 2px;
+}
+
+#sentence-display span.current {
+     background-color: #00FF41;
+     color: #000;
+     /* Use outline for cursor to avoid messing with underline on error */
+     outline: 1px solid #00FF41;
+     outline-offset: 1px;
+}
+/* Style specifically for the error cursor */
+#sentence-display span.incorrect.current {
+     background-color: #FF4500; /* Make error cursor background bright red */
+     color: #000;
+     outline: 2px solid #FFF; /* White outline to stand out */
+     text-decoration: none; /* Remove underline when it's the cursor */
+}
+
+
+#typing-input {
+    width: 100%;
+    font-family: 'VT323', monospace;
+    font-size: 1.5rem;
+    padding: 10px;
+    background-color: #0a0a0a;
+    color: #00FF41;
+    border: 1px solid #00FF41;
+    margin-bottom: 20px;
+    resize: none;
+    text-shadow: 0 0 3px #00FF41;
+}
+
+#typing-input:disabled {
+    background-color: #1a1a1a;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Progress Bars */
+#progress-bars {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.progress-container {
+    margin-bottom: 15px;
+    text-align: left;
+}
+.progress-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.progress-bar-outer {
+    width: 100%;
+    height: 25px;
+    border: 1px solid #00FF41;
+    background-color: #111;
+    padding: 2px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s linear, background-color 0.3s ease; /* Add transition for color */
+    text-align: center;
+    line-height: 19px;
+    font-size: 0.9rem;
+    color: #000;
+}
+
+.progress-bar.user {
+    background-color: #00FF41;
+}
+
+.progress-bar.computer {
+    background-color: #FFA500; /* Amber */
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 4px solid rgba(0, 255, 65, 0.3);
+    border-left-color: #00FF41;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-top: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* CRT Overlay (Scanlines Only) */
+#crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 1px,
+        rgba(0, 0, 0, 0.15) 2px, /* Scanline */
+        rgba(0, 0, 0, 0.15) 3px
+    );
+    opacity: 0.9;
+}
+
+/* Shake Animation */
+@keyframes shake-anim {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-3px, 2px); }
+    20% { transform: translate(4px, -1px); }
+    30% { transform: translate(-2px, -3px); }
+    40% { transform: translate(1px, 2px); }
+    50% { transform: translate(-3px, 1px); }
+    60% { transform: translate(4px, 2px); }
+    70% { transform: translate(-1px, -2px); }
+    80% { transform: translate(2px, 3px); }
+    90% { transform: translate(-4px, -1px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Class applied to body for shaking on error */
+body.shakeOnError {
+    animation: shake-anim 0.3s linear forwards;
+}
+
+/* Computer Progress Bar Pulsing Animations (Color/Opacity based) */
+@keyframes pulse-medium-color { /* Renamed */
+    0%, 100% {
+      background-color: #FFA500; /* Orange base */
+      opacity: 1;
+    }
+    50% {
+      background-color: #FFC04D; /* Lighter orange for pulse */
+      opacity: 0.75; /* Fade slightly */
+    }
+  }
+  
+  @keyframes pulse-critical-color { /* Renamed */
+    0%, 100% {
+      background-color: #FF0000; /* Red base */
+      opacity: 1;
+    }
+    50% {
+      background-color: #FF4500; /* Red-Orange for pulse */
+      opacity: 0.7; /* Fade slightly more */
+    }
+  }
+  
+  /* Classes for computer progress bar */
+  /* Apply the NEW color-based animations */
+  .progress-bar.computer.pulse-medium {
+      animation: pulse-medium-color 0.8s infinite ease-in-out;
+      /* Base color is set by the animation now */
+  }
+  
+  .progress-bar.computer.pulse-critical {
+      animation: pulse-critical-color 0.4s infinite ease-in-out; /* Faster critical pulse */
+       /* Base color is set by the animation now */
+  }
+  
+  /* --- Keep all other CSS rules --- */
+  
+  /* Add style for the sentence display fuzziness container */
+  #sentence-display {
+      /* Add transition for smoother fuzziness changes */
+      transition: filter 0.2s ease-out, text-shadow 0.2s ease-out;
+      /* Make sure positioning context is okay for potential future effects */
+      position: relative;
+  }
