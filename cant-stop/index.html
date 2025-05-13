@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can't Stop - Pixel Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --bg-color: #000;
+            --text-color: #0FF; /* Cyan */
+            --border-color: #F0F; /* Magenta */
+            --highlight-color: #FF0; /* Yellow */
+            --disabled-color: #555;
+            --player1-color: #0F0; /* Green */
+            --player2-color: #F00; /* Red */
+            --player3-color: #00F; /* Blue */
+            --player4-color: #FFF; /* White */
+            --temp-marker-suffix: "temp";
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            line-height: 1.6;
+            font-size: 12px; /* Base for responsiveness */
+        }
+
+        h1, h2, h3 {
+            color: var(--highlight-color);
+            margin-bottom: 0.5em;
+        }
+
+        button {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            border: 2px solid var(--border-color);
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            min-width: 120px;
+        }
+
+        button:hover {
+            background-color: var(--highlight-color);
+            color: var(--bg-color);
+        }
+        button:disabled {
+            background-color: var(--disabled-color);
+            color: #aaa;
+            border-color: #777;
+            cursor: not-allowed;
+        }
+
+        .screen {
+            border: 3px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 600px;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        #menu-screen, #rules-screen, #game-over-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #rules-screen p, #rules-screen li {
+            text-align: left;
+            font-size: 0.9em;
+        }
+        #rules-screen ul {
+            padding-left: 20px;
+        }
+
+
+        #game-screen { display: none; }
+        #rules-screen { display: none; }
+        #game-over-screen { display: none; }
+
+        #player-info {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        #board-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Align columns at their base */
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            min-height: 200px; /* Ensure space for columns */
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column-reverse; /* Spaces build upwards */
+            align-items: center;
+            margin: 0 3px; /* Reduced margin */
+            padding: 3px;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            min-width: 25px; /* Ensure min width for visibility */
+        }
+        .column-header {
+            font-size: 0.9em;
+            color: var(--highlight-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 3px;
+            margin-bottom: 3px;
+            width: 100%;
+        }
+        .space {
+            width: 22px; /* Slightly smaller than column */
+            height: 18px; /* Slightly smaller than default line-height */
+            font-size: 0.8em; /* Make marker text smaller */
+            border: 1px dashed #444;
+            margin: 1px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color); /* Default space color */
+        }
+        .space.top-space {
+            border-top: 2px solid var(--highlight-color);
+        }
+
+        /* Player markers */
+        .player0 { color: var(--player1-color); }
+        .player1 { color: var(--player2-color); }
+        .player2 { color: var(--player3-color); }
+        .player3 { color: var(--player4-color); }
+
+        .player0temp { color: var(--player1-color); opacity: 0.6; }
+        .player1temp { color: var(--player2-color); opacity: 0.6; }
+        .player2temp { color: var(--player3-color); opacity: 0.6; }
+        .player3temp { color: var(--player4-color); opacity: 0.6; }
+
+
+        #dice-area {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .dice {
+            display: inline-block;
+            border: 1px solid var(--text-color);
+            padding: 5px 8px;
+            margin: 0 3px;
+            min-width: 20px;
+        }
+
+        #pair-choices button {
+            font-size: 0.9em;
+            padding: 8px 10px;
+            min-width: 100px;
+        }
+
+        #message-area {
+            margin-top: 15px;
+            min-height: 1.5em; /* Reserve space for messages */
+            color: var(--highlight-color);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body { font-size: 10px; }
+            button { padding: 8px 10px; min-width: 100px;}
+            .screen { padding: 15px; }
+            .column { margin: 0 2px; min-width: 20px;}
+            .space { width: 18px; height: 15px; font-size: 0.7em;}
+        }
+        @media (max-width: 480px) {
+            body { font-size: 9px; }
+            #board-container { padding: 2px; }
+            .column { margin: 0 1px; min-width: 18px; }
+            .column-header { font-size: 0.8em; }
+            .space { width: 15px; height: 13px; font-size: 0.6em; }
+            button { padding: 6px 8px; min-width: 80px; margin: 3px;}
+            #dice-area { font-size: 1.2em; }
+            .dice { padding: 3px 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen" class="screen">
+        <h1>CAN'T STOP</h1>
+        <h2>(Pixel Edition)</h2>
+        <p>Select number of players:</p>
+        <button onclick="startGame(2)">2 Players</button>
+        <button onclick="startGame(3)">3 Players</button>
+        <button onclick="startGame(4)">4 Players</button>
+        <button onclick="showRules()">View Rules</button>
+    </div>
+
+    <div id="rules-screen" class="screen">
+        <h2>RULES</h2>
+        <p>Objective: Be the first to claim 3 columns.</p>
+        <ul>
+            <li>On your turn, roll 4 dice.</li>
+            <li>Pair them into two sums (e.g., 1+2=3, 4+5=9).</li>
+            <li>Choose one or two sums to advance your temporary markers (climbers) on the board columns. You can use max 3 climbers per turn.</li>
+            <li>After advancing, EITHER:</li>
+            <li>    A) STOP: Your climbers become permanent markers. Your turn ends.</li>
+            <li>    B) ROLL AGAIN: You MUST be able to advance at least one of your current climbers with the new dice sums. If not, you BUST!</li>
+            <li>BUST: Lose all progress made THIS TURN. Your turn ends.</li>
+            <li>Columns 2-12 have different lengths. Claim a column by reaching its top space.</li>
+        </ul>
+        <button onclick="hideRules()">Back to Menu</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="player-info">Player X's Turn</div>
+        <div id="board-container"></div>
+        <div id="dice-area">
+            Dice: <span class="dice">?</span> <span class="dice">?</span> <span class="dice">?</span> <span class="dice">?</span>
+        </div>
+        <div id="actions-area">
+            <button id="roll-dice-btn" onclick="handleRollDice()">Roll Dice</button>
+            <div id="pair-choices"></div>
+            <button id="stop-turn-btn" onclick="handleStopTurn()" disabled>Stop Turn</button>
+        </div>
+        <div id="message-area"></div>
+    </div>
+
+    <div id="game-over-screen" class="screen">
+        <h2>GAME OVER!</h2>
+        <p id="winner-message"></p>
+        <button onclick="showMenu()">Play Again</button>
+    </div>
+
+    <script>
+        const COLUMN_DEFINITIONS = {
+            2: { len: 3 }, 3: { len: 5 }, 4: { len: 7 }, 5: { len: 9 },
+            6: { len: 11 }, 7: { len: 13 }, 8: { len: 11 }, 9: { len: 9 },
+            10: { len: 7 }, 11: { len: 5 }, 12: { len: 3 }
+        };
+        const PLAYER_SYMBOLS = ['P1', 'P2', 'P3', 'P4'];
+        const PLAYER_CLASSES = ['player0', 'player1', 'player2', 'player3'];
+        const TEMP_MARKER_SUFFIX = 't'; // Shorter for display
+
+        let numPlayers;
+        let currentPlayerIndex;
+        let playersData; // [{ symbol, class, progress: {colNum: pos}, claimedColumns: [] }]
+        let boardState; // { colNum: { claimedBy: null, spaces: [] (for rendering markers) }}
+        
+        // Turn-specific state
+        let currentDice = [0,0,0,0];
+        let currentRunners = []; // Array of column numbers with active temporary markers
+        let tempRunnerPositions = {}; // { colNum: position } for current turn
+
+        // DOM Elements
+        const menuScreen = document.getElementById('menu-screen');
+        const rulesScreen = document.getElementById('rules-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const playerInfoDiv = document.getElementById('player-info');
+        const boardContainer = document.getElementById('board-container');
+        const diceArea = document.getElementById('dice-area');
+        const rollDiceBtn = document.getElementById('roll-dice-btn');
+        const stopTurnBtn = document.getElementById('stop-turn-btn');
+        const pairChoicesDiv = document.getElementById('pair-choices');
+        const messageArea = document.getElementById('message-area');
+        const winnerMessage = document.getElementById('winner-message');
+
+        function showScreen(screenToShow) {
+            [menuScreen, rulesScreen, gameScreen, gameOverScreen].forEach(s => s.style.display = 'none');
+            screenToShow.style.display = 'flex'; // Using flex for centering
+        }
+        function showMenu() { showScreen(menuScreen); }
+        function showRules() { showScreen(rulesScreen); }
+        function hideRules() { showScreen(menuScreen); }
+
+        function initBoard() {
+            boardState = {};
+            boardContainer.innerHTML = '';
+            for (const colNum in COLUMN_DEFINITIONS) {
+                boardState[colNum] = {
+                    claimedBy: null,
+                    spaces: Array(COLUMN_DEFINITIONS[colNum].len).fill('')
+                };
+
+                const columnDiv = document.createElement('div');
+                columnDiv.classList.add('column');
+                columnDiv.dataset.column = colNum;
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.classList.add('column-header');
+                headerDiv.textContent = colNum;
+                columnDiv.appendChild(headerDiv);
+
+                for (let i = 0; i < COLUMN_DEFINITIONS[colNum].len; i++) {
+                    const spaceDiv = document.createElement('div');
+                    spaceDiv.classList.add('space');
+                    if (i === COLUMN_DEFINITIONS[colNum].len - 1) {
+                        spaceDiv.classList.add('top-space');
+                    }
+                    spaceDiv.id = `space-${colNum}-${i}`;
+                    columnDiv.appendChild(spaceDiv);
+                }
+                boardContainer.appendChild(columnDiv);
+            }
+        }
+
+        function renderBoard() {
+            // Clear previous markers
+            document.querySelectorAll('.space').forEach(s => {
+                s.textContent = '';
+                s.className = 'space'; // Reset classes, keep 'top-space' if applicable
+                 // Re-add top-space if it was there (find column num and check length)
+                const parts = s.id.split('-');
+                const colNum = parseInt(parts[1]);
+                const spaceIndex = parseInt(parts[2]);
+                if (spaceIndex === COLUMN_DEFINITIONS[colNum].len - 1) {
+                    s.classList.add('top-space');
+                }
+            });
+
+            // Draw permanent markers
+            playersData.forEach((player, pIdx) => {
+                for (const colNum in player.progress) {
+                    const pos = player.progress[colNum];
+                    if (pos > 0) { // Position 0 is off-board
+                        const spaceId = `space-${colNum}-${pos-1}`;
+                        const spaceDiv = document.getElementById(spaceId);
+                        if (spaceDiv) {
+                            spaceDiv.textContent = player.symbol;
+                            spaceDiv.classList.add(player.class);
+                        }
+                    }
+                }
+            });
+
+            // Draw temporary markers
+            for (const colNum in tempRunnerPositions) {
+                const pos = tempRunnerPositions[colNum];
+                if (pos > 0) {
+                    const spaceId = `space-${colNum}-${pos-1}`;
+                    const spaceDiv = document.getElementById(spaceId);
+                    if (spaceDiv) {
+                        spaceDiv.textContent = playersData[currentPlayerIndex].symbol + TEMP_MARKER_SUFFIX;
+                        spaceDiv.classList.add(playersData[currentPlayerIndex].class + 'temp');
+                    }
+                }
+            }
+        }
+        
+        function startGame(playersCount) {
+            numPlayers = playersCount;
+            currentPlayerIndex = 0;
+            playersData = [];
+            for (let i = 0; i < numPlayers; i++) {
+                playersData.push({
+                    symbol: PLAYER_SYMBOLS[i],
+                    class: PLAYER_CLASSES[i],
+                    progress: {}, // { colNum: position }
+                    claimedColumns: []
+                });
+            }
+            initBoard();
+            renderBoard();
+            startTurn();
+            showScreen(gameScreen);
+        }
+
+        function startTurn() {
+            playerInfoDiv.textContent = `${playersData[currentPlayerIndex].symbol}'s Turn`;
+            playerInfoDiv.className = playersData[currentPlayerIndex].class; // Color the text
+            currentRunners = [];
+            tempRunnerPositions = {};
+            currentDice = [0,0,0,0];
+            updateDiceDisplay();
+            rollDiceBtn.disabled = false;
+            stopTurnBtn.disabled = true;
+            pairChoicesDiv.innerHTML = '';
+            messageArea.textContent = '';
+            renderBoard(); // Render to clear previous temp markers
+        }
+
+        function rollDie() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        function updateDiceDisplay() {
+            const diceSpans = diceArea.querySelectorAll('.dice');
+            currentDice.forEach((val, i) => {
+                diceSpans[i].textContent = val === 0 ? '?' : val;
+            });
+        }
+        
+        function getPossiblePairs(dice) {
+            const d = [...dice]; // Clone
+            const pairs = new Set(); // Use Set to store unique stringified pairs
+
+            // (d1+d2, d3+d4)
+            pairs.add(JSON.stringify([d[0]+d[1], d[2]+d[3]].sort((a,b)=>a-b)));
+            // (d1+d3, d2+d4)
+            pairs.add(JSON.stringify([d[0]+d[2], d[1]+d[3]].sort((a,b)=>a-b)));
+            // (d1+d4, d2+d3)
+            pairs.add(JSON.stringify([d[0]+d[3], d[1]+d[2]].sort((a,b)=>a-b)));
+            
+            const result = [];
+            pairs.forEach(pStr => {
+                const pair = JSON.parse(pStr);
+                // Filter out pairs that would involve sums outside 2-12
+                if (pair.every(sum => sum >=2 && sum <= 12)) {
+                    result.push(pair);
+                }
+            });
+            return result;
+        }
+
+        function handleRollDice() {
+            currentDice = [rollDie(), rollDie(), rollDie(), rollDie()];
+            updateDiceDisplay();
+            rollDiceBtn.disabled = true;
+            
+            let possibleAdvancements = getPossiblePairs(currentDice);
+            
+            // Filter advancements: must be able to advance at least one current runner OR start a new one if < 3 runners
+            if (currentRunners.length > 0) {
+                possibleAdvancements = possibleAdvancements.filter(pair => 
+                    pair.some(sum => currentRunners.includes(sum.toString()))
+                );
+            }
+
+            if (possibleAdvancements.length === 0) {
+                messageArea.textContent = "BUST! No valid moves.";
+                // No need to disable stop, as turn ends automatically
+                setTimeout(nextTurnAfterBust, 1500);
+                return;
+            }
+            
+            displayPairChoices(possibleAdvancements);
+            stopTurnBtn.disabled = false; // Can always stop after a roll if not busted
+        }
+
+        function displayPairChoices(advancements) {
+            pairChoicesDiv.innerHTML = '';
+            advancements.forEach(pair => {
+                const btn = document.createElement('button');
+                const sum1 = pair[0];
+                const sum2 = pair[1];
+
+                let btnText = `${sum1} & ${sum2}`;
+                if (sum1 === sum2) btnText = `${sum1} (double)`;
+
+                btn.textContent = `Use ${btnText}`;
+                btn.onclick = () => selectPairToAdvance(sum1, sum2);
+
+                // Check if this choice is valid for current runners
+                let canAdvanceSum1 = false;
+                let canAdvanceSum2 = false;
+
+                // Column not claimed by someone else
+                const col1Free = !boardState[sum1] || boardState[sum1].claimedBy === null || boardState[sum1].claimedBy === currentPlayerIndex;
+                const col2Free = !boardState[sum2] || boardState[sum2].claimedBy === null || boardState[sum2].claimedBy === currentPlayerIndex;
+
+
+                if (col1Free) {
+                    if (currentRunners.includes(sum1.toString())) canAdvanceSum1 = true;
+                    else if (currentRunners.length < 3) canAdvanceSum1 = true;
+                    else if (sum1 === sum2 && currentRunners.length < 2 && !currentRunners.includes(sum1.toString())) canAdvanceSum1 = true; // Special case for doubles opening 2 runners
+                }
+
+                if (col2Free) {
+                    if (currentRunners.includes(sum2.toString())) canAdvanceSum2 = true;
+                    // If sum1 took the last runner slot, sum2 can't open a new one unless it's the same as sum1
+                    else if (sum1 === sum2 && currentRunners.includes(sum1.toString())) canAdvanceSum2 = true; // Advancing same column twice
+                    else if (currentRunners.length < 3) canAdvanceSum2 = true;
+                    else if (currentRunners.length === 2 && !currentRunners.includes(sum2.toString()) && !canAdvanceSum1) canAdvanceSum2 = true; // if sum1 is not new
+                    else if (sum1 !== sum2 && currentRunners.length < (canAdvanceSum1 && !currentRunners.includes(sum1.toString()) ? 2 : 3)) canAdvanceSum2 = true;
+                }
+                
+                // At least one of the sums must be advancable for the pair button to be active.
+                // And each sum must be valid to advance (not at top, not claimed by other)
+                const sum1AtTop = tempRunnerPositions[sum1] === COLUMN_DEFINITIONS[sum1]?.len;
+                const sum2AtTop = tempRunnerPositions[sum2] === COLUMN_DEFINITIONS[sum2]?.len;
+
+                if (sum1AtTop) canAdvanceSum1 = false;
+                if (sum2AtTop) canAdvanceSum2 = false;
+
+                if (canAdvanceSum1 || canAdvanceSum2) {
+                    pairChoicesDiv.appendChild(btn);
+                }
+            });
+            if (pairChoicesDiv.children.length === 0 && currentRunners.length > 0) {
+                 messageArea.textContent = "BUST! No valid moves with current runners.";
+                 setTimeout(nextTurnAfterBust, 1500);
+            } else if (pairChoicesDiv.children.length === 0 && currentRunners.length === 0) {
+                messageArea.textContent = "No valid columns to start on (all taken/too short). BUST!";
+                setTimeout(nextTurnAfterBust, 1500);
+            }
+        }
+
+        function selectPairToAdvance(sum1, sum2) {
+            pairChoicesDiv.innerHTML = ''; // Clear choices
+            let advancedSomething = false;
+
+            const advanceSum = (sum) => {
+                if (boardState[sum].claimedBy !== null && boardState[sum].claimedBy !== currentPlayerIndex) {
+                    return false; // Column claimed by another
+                }
+                if (tempRunnerPositions[sum] === COLUMN_DEFINITIONS[sum].len) {
+                    return false; // Already at top
+                }
+
+                if (currentRunners.includes(sum.toString())) {
+                    tempRunnerPositions[sum]++;
+                    advancedSomething = true;
+                    return true;
+                } else if (currentRunners.length < 3) {
+                    currentRunners.push(sum.toString());
+                    // Start runner: if player has permanent marker, start from there, else from 0
+                    tempRunnerPositions[sum] = (playersData[currentPlayerIndex].progress[sum] || 0) + 1;
+                    advancedSomething = true;
+                    return true;
+                }
+                return false; // Cannot advance this sum (no free runner slot)
+            };
+
+            // Try to advance sum1
+            const advanced1 = advanceSum(sum1);
+            
+            // Try to advance sum2 (only if different from sum1, or if sum1 was advanced and it's a double)
+            // Or if sum1 couldn't be advanced but sum2 can use a new runner slot
+            if (sum1 === sum2) { // If it's a double, and first advance was successful
+                if (advanced1) advanceSum(sum2); // Attempt second advance on same column
+            } else { // Different sums
+                advanceSum(sum2);
+            }
+
+
+            if (!advancedSomething && currentRunners.length > 0) {
+                // This case should ideally be caught by displayPairChoices disabling buttons
+                // But as a fallback, if a choice was made that results in no advancement with existing runners
+                messageArea.textContent = "Error: Choice didn't advance. Busting.";
+                setTimeout(nextTurnAfterBust, 1500);
+                return;
+            }
+            
+            renderBoard();
+            rollDiceBtn.disabled = false; // Can roll again
+            stopTurnBtn.disabled = false;
+        }
+
+        function handleStopTurn() {
+            // Make temporary markers permanent
+            for (const colNumStr in tempRunnerPositions) {
+                const colNum = parseInt(colNumStr);
+                const pos = tempRunnerPositions[colNum];
+                playersData[currentPlayerIndex].progress[colNum] = pos;
+
+                // Check for claimed column
+                if (pos === COLUMN_DEFINITIONS[colNum].len && !boardState[colNum].claimedBy) {
+                    boardState[colNum].claimedBy = currentPlayerIndex;
+                    playersData[currentPlayerIndex].claimedColumns.push(colNum);
+                    messageArea.textContent = `${playersData[currentPlayerIndex].symbol} claimed column ${colNum}!`;
+                }
+            }
+            
+            renderBoard(); // Show permanent markers
+
+            // Check for win
+            if (playersData[currentPlayerIndex].claimedColumns.length >= 3) {
+                gameOver();
+                return;
+            }
+
+            nextTurn();
+        }
+        
+        function nextTurnAfterBust() {
+            // Busted: temp progress is lost.
+            tempRunnerPositions = {}; // Reset temp positions
+            currentRunners = [];      // Reset runners
+            // Don't save progress to playersData
+            renderBoard(); // Clear temp markers from board
+            nextTurn();
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % numPlayers;
+            startTurn();
+        }
+
+        function gameOver() {
+            winnerMessage.textContent = `${playersData[currentPlayerIndex].symbol} WINS!`;
+            showScreen(gameOverScreen);
+        }
+
+        // Initial call
+        showMenu();
+
+    </script>
+</body>
+</html>
